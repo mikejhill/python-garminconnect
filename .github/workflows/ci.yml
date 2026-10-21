@@ -11,6 +11,9 @@ name: CI
       - main
       - master
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,10 +22,12 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -44,22 +49,7 @@ jobs:
         run: |
           pdm run mypy garminconnect --ignore-missing-imports
 
-      # - name: Test with pytest
-      #   env:
-      #     GARMINTOKENS: ${{ secrets.GARMINTOKENS }}
-      #   run: |
-      #     # Use existing VCR cassettes for CI to avoid network calls
-      #     pdm run pytest tests/ -v --tb=short --vcr-record=none
-      #   continue-on-error: false
-
-      # - name: Upload coverage reports
-      #   if: matrix.python-version == '3.11'
-      #   env:
-      #     GARMINTOKENS: ${{ secrets.GARMINTOKENS }}
-      #   run: |
-      #     pdm run coverage run -m pytest -v --tb=short --vcr-record=none
-      #     pdm run coverage xml
-      #   continue-on-error: true
+      # Live-account integration tests remain outside credential-free CI.
 
       - name: Check for coverage report
         id: coverage_check
@@ -72,7 +62,7 @@ jobs:
 
       - name: Upload coverage artifact
         if: matrix.python-version == '3.11' && steps.coverage_check.outputs.coverage_generated == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: coverage-xml
           path: coverage.xml
@@ -80,10 +70,12 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: "3.11"
 
